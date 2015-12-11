@@ -28,6 +28,44 @@ export default class EgoJS {
         return result;
     }
 
+    _packageExists(property, value) {
+        const where = {};
+        where[property] = value;
+        return this._tables.packages.where(where).items.length;
+    }
+
+    addPackage(name, repository, npmPackage) {
+        return new Promise(((resolve, reject) => {
+            let error = null;
+            let record = null;
+
+            if (!repository && !npmPackage) {
+                error = 'You need to enter at least the repository or the NPM package';
+            } else if (this._packageExists('name', name)) {
+                error = 'You already have a package with that name';
+            } else if (repository && this._packageExists('repository', repository)) {
+                error = 'You already have a package with that repository URL';
+            } else if (npmPackage && this._packageExists('npmPackage', npmPackage)) {
+                error = 'You already have a package with that NPM name';
+            } else {
+                const newId = this._tables.packages.insert({
+                    name,
+                    repository,
+                    npmPackage,
+                });
+
+                record = this._tables.packages.get(newId);
+            }
+
+            if (record) {
+                resolve(record);
+            } else {
+                reject(new Error(error));
+            }
+
+        }).bind(this));
+    }
+
     set settings(value) {
         const dbSettings = this._getDBSettings();
         const settingsCid = dbSettings ? dbSettings.cid : -1;

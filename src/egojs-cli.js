@@ -85,7 +85,7 @@ export default class EgoJSCli {
             this._ego.settings = {
                 ghToken: result.ghToken,
             };
-            logUtil.debug('The settings were sucessfully saved.');
+            logUtil.debug('The settings were sucessfully saved');
         }).bind(this));
     }
 
@@ -103,8 +103,42 @@ export default class EgoJSCli {
         this._getSettingsPrompt(this._ego.settings || {});
     }
 
+    _getPackagePrompt(defaults = {}) {
+        return this._promisePrompt([
+            {
+                description: 'Package name',
+                name: 'name',
+                required: true,
+                default: defaults.name || '',
+            },
+            {
+                description: 'Github repository (username/repository)',
+                name: 'repository',
+                required: false,
+                default: defaults.repository || '',
+            },
+            {
+                description: 'NPM package name',
+                name: 'npmPackage',
+                required: false,
+                default: defaults.npmPackage || '',
+            },
+        ]);
+    }
+
     addPackage() {
-        console.log('Add a package');
+        this._getPackagePrompt().then(((result) => {
+            return this._ego.addPackage(result.name, result.repository, result.npmPackage);
+        })
+
+        .bind(this))
+        .then(((result) => {
+            logUtil.debug('The package was successfully added');
+        }).bind(this))
+
+        .catch(((err) => {
+            logUtil.error(err);
+        }).bind(this));
     }
 
     removePackage() {

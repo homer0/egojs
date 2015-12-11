@@ -108,7 +108,7 @@ var EgoJSCli = (function () {
                 _this._ego.settings = {
                     ghToken: result.ghToken
                 };
-                _logUtil2.default.debug('The settings were sucessfully saved.');
+                _logUtil2.default.debug('The settings were sucessfully saved');
             }).bind(this));
         }
     }, {
@@ -129,9 +129,39 @@ var EgoJSCli = (function () {
             this._getSettingsPrompt(this._ego.settings || {});
         }
     }, {
+        key: '_getPackagePrompt',
+        value: function _getPackagePrompt() {
+            var defaults = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+            return this._promisePrompt([{
+                description: 'Package name',
+                name: 'name',
+                required: true,
+                default: defaults.name || ''
+            }, {
+                description: 'Github repository (username/repository)',
+                name: 'repository',
+                required: false,
+                default: defaults.repository || ''
+            }, {
+                description: 'NPM package name',
+                name: 'npmPackage',
+                required: false,
+                default: defaults.npmPackage || ''
+            }]);
+        }
+    }, {
         key: 'addPackage',
         value: function addPackage() {
-            console.log('Add a package');
+            var _this2 = this;
+
+            this._getPackagePrompt().then((function (result) {
+                return _this2._ego.addPackage(result.name, result.repository, result.npmPackage);
+            }).bind(this)).then((function (result) {
+                _logUtil2.default.debug('The package was successfully added');
+            }).bind(this)).catch((function (err) {
+                _logUtil2.default.error(err);
+            }).bind(this));
         }
     }, {
         key: 'removePackage',

@@ -50,6 +50,47 @@ var EgoJS = (function () {
             return result;
         }
     }, {
+        key: '_packageExists',
+        value: function _packageExists(property, value) {
+            var where = {};
+            where[property] = value;
+            return this._tables.packages.where(where).items.length;
+        }
+    }, {
+        key: 'addPackage',
+        value: function addPackage(name, repository, npmPackage) {
+            var _this = this;
+
+            return new Promise((function (resolve, reject) {
+                var error = null;
+                var record = null;
+
+                if (!repository && !npmPackage) {
+                    error = 'You need to enter at least the repository or the NPM package';
+                } else if (_this._packageExists('name', name)) {
+                    error = 'You already have a package with that name';
+                } else if (repository && _this._packageExists('repository', repository)) {
+                    error = 'You already have a package with that repository URL';
+                } else if (npmPackage && _this._packageExists('npmPackage', npmPackage)) {
+                    error = 'You already have a package with that NPM name';
+                } else {
+                    var newId = _this._tables.packages.insert({
+                        name: name,
+                        repository: repository,
+                        npmPackage: npmPackage
+                    });
+
+                    record = _this._tables.packages.get(newId);
+                }
+
+                if (record) {
+                    resolve(record);
+                } else {
+                    reject(new Error(error));
+                }
+            }).bind(this));
+        }
+    }, {
         key: 'settings',
         set: function set(value) {
             var dbSettings = this._getDBSettings();
