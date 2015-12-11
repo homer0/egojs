@@ -6,25 +6,17 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _commander = require('commander');
+var _locallydb = require('locallydb');
 
-var _commander2 = _interopRequireDefault(_commander);
-
-var _fs = require('fs');
-
-var _fs2 = _interopRequireDefault(_fs);
+var _locallydb2 = _interopRequireDefault(_locallydb);
 
 var _path = require('path');
 
 var _path2 = _interopRequireDefault(_path);
 
-var _request = require('request');
+var _utils = require('./utils');
 
-var _request2 = _interopRequireDefault(_request);
-
-var _logUtil = require('log-util');
-
-var _logUtil2 = _interopRequireDefault(_logUtil);
+var _utils2 = _interopRequireDefault(_utils);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -34,46 +26,49 @@ var EgoJS = (function () {
     function EgoJS() {
         _classCallCheck(this, EgoJS);
 
-        this._version = this._getPackageVersion();
+        this._db = new _locallydb2.default(_path2.default.resolve('./data'));
+        this._tables = {
+            settings: this._db.collection('settings'),
+            packages: this._db.collection('packages')
+        };
 
-        _commander2.default.version(this.version);
-
-        _commander2.default.command('config').description('Change the configuration').action(this.configure.bind(this));
-        _commander2.default.command('add').description('Add a package').action(this.addPackage.bind(this));
-        _commander2.default.command('remove').description('Remove a package').action(this.removePackage.bind(this));
-
-        _commander2.default.options[0].flags = '-v, --version';
-        _commander2.default.options[0].description = 'print the EgoJS version';
-
-        _commander2.default.parse(process.argv);
+        this._settings = this._getDBSettings();
     }
 
     _createClass(EgoJS, [{
-        key: '_getPackageVersion',
-        value: function _getPackageVersion() {
-            var packagePath = _path2.default.resolve('./package.json');
-            var packageContents = _fs2.default.readFileSync(packagePath, 'utf-8');
-            return JSON.parse(packageContents).version;
+        key: '_getDBSettings',
+        value: function _getDBSettings() {
+            var records = this._tables.settings.where({
+                settingId: 1
+            });
+
+            var result = null;
+            if (records.items.length) {
+                result = records.items[0];
+            }
+
+            return result;
         }
     }, {
-        key: 'version',
-        value: function version() {
-            console.log(this._version);
-        }
-    }, {
-        key: 'configure',
-        value: function configure() {
-            console.log('Open config...');
-        }
-    }, {
-        key: 'addPackage',
-        value: function addPackage() {
-            console.log('Start adding...');
-        }
-    }, {
-        key: 'removePackage',
-        value: function removePackage() {
-            console.log('Remove package...');
+        key: 'settings',
+        set: function set(value) {
+            var dbSettings = this._getDBSettings();
+            var settingsCid = dbSettings ? dbSettings.cid : -1;
+
+            this._settings = value;
+            var record = _utils2.default.mergeObjects({
+                settingId: 1
+            }, value);
+
+            if (settingsCid > -1) {
+                this._tables.settings.update(settingsCid, record);
+            } else {
+                this._tables.settings.insert(record);
+                this._settings = this._getDBSettings();
+            }
+        },
+        get: function get() {
+            return this._settings;
         }
     }]);
 

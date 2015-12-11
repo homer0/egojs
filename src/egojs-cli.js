@@ -1,15 +1,28 @@
 
 import commander from 'commander';
+import prompt from 'prompt';
+import logUtil from 'log-util';
+import colors from 'colors';
 import fs from 'fs';
 import path from 'path';
+import EgoJS from './egojs';
+import EgoJSUtils from './utils';
 
 export default class EgoJSCli {
 
     constructor() {
 
-        this._version = this._getPackageVersion();
-        commander.version(this.version);
+        prompt.message = '';
+        prompt.delimiter = '';
 
+        this._version = this._getPackageVersion();
+        commander.version(this._version);
+        this._ego = new EgoJS();
+
+        commander
+            .command('list')
+            .description('List the stats')
+            .action(this.listPackages.bind(this));
         commander
             .command('config')
             .description('Change the configuration')
@@ -28,9 +41,14 @@ export default class EgoJSCli {
             .action(this.refresh.bind(this));
 
         commander.options[0].flags = '-v, --version';
+        commander.options[0].short = '-v';
         commander.options[0].description = 'print the EgoJS version';
 
         commander.parse(process.argv);
+
+        if (!commander.args.length) {
+            this.listPackages();
+        }
 
     }
 
@@ -40,12 +58,49 @@ export default class EgoJSCli {
         return JSON.parse(packageContents).version;
     }
 
-    version() {
-        console.log(this._version);
+    _promisePrompt(schema) {
+        return new Promise((resolve, reject) => {
+            prompt.get(schema, function(err, result) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(result);
+                }
+            });
+        });
+    }
+
+    _getSettingsPrompt(defaults = {}) {
+        logUtil.verbose('You can create a token on ' +
+            colors.green('https://github.com/settings/tokens/new'));
+        return this._promisePrompt([
+            {
+                description: 'Please enter a Github Access Token',
+                name: 'ghToken',
+                hidden: true,
+                required: true,
+                default: defaults.ghToken || '',
+            },
+        ]).then(((result) => {
+            this._ego.settings = {
+                ghToken: result.ghToken,
+            };
+            logUtil.debug('The settings were sucessfully saved.');
+        }).bind(this));
+    }
+
+    _detectSettings() {
+        return this._ego.settings ? EgoJSUtils.resolvedPromise() : this._getSettingsPrompt();
+    }
+
+    listPackages() {
+        this._detectSettings().then(() => {
+            console.log('List the stats');
+        });
     }
 
     configure() {
-        console.log('Change the configuration');
+        this._getSettingsPrompt(this._ego.settings || {});
     }
 
     addPackage() {

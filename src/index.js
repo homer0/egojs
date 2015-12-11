@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env node --harmony
 'use strict';
 
 import EgoJSCli from './egojs-cli';
