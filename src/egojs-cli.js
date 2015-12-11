@@ -32,7 +32,7 @@ export default class EgoJSCli {
             .description('Add a package')
             .action(this.addPackage.bind(this));
         commander
-            .command('remove')
+            .command('remove <id>')
             .description('Remove a package')
             .action(this.removePackage.bind(this));
         commander
@@ -94,9 +94,7 @@ export default class EgoJSCli {
     }
 
     listPackages() {
-        this._detectSettings().then(() => {
-            console.log('List the stats');
-        });
+        this._detectSettings().then(() => console.log('List the stats'));
     }
 
     configure() {
@@ -132,17 +130,16 @@ export default class EgoJSCli {
         })
 
         .bind(this))
-        .then(((result) => {
-            logUtil.debug('The package was successfully added');
-        }).bind(this))
-
-        .catch(((err) => {
-            logUtil.error(err);
-        }).bind(this));
+        .then((result) => logUtil.debug(result.name + ' was successfully added'))
+        .catch((err) => logUtil.error(err));
     }
 
-    removePackage() {
-        console.log('Remove a package');
+    removePackage(id) {
+        this._ego.removePackage(Number(id)).then((result) => {
+            logUtil.debug(result.name + ' was successfully removed');
+        })
+
+        .catch((err) => logUtil.error(err));
     }
 
     refresh() {

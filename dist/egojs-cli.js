@@ -56,7 +56,7 @@ var EgoJSCli = (function () {
         _commander2.default.command('list').description('List the stats').action(this.listPackages.bind(this));
         _commander2.default.command('config').description('Change the configuration').action(this.configure.bind(this));
         _commander2.default.command('add').description('Add a package').action(this.addPackage.bind(this));
-        _commander2.default.command('remove').description('Remove a package').action(this.removePackage.bind(this));
+        _commander2.default.command('remove <id>').description('Remove a package').action(this.removePackage.bind(this));
         _commander2.default.command('refresh').description('Clean the cache and refresh stats').action(this.refresh.bind(this));
 
         _commander2.default.options[0].flags = '-v, --version';
@@ -157,16 +157,20 @@ var EgoJSCli = (function () {
 
             this._getPackagePrompt().then((function (result) {
                 return _this2._ego.addPackage(result.name, result.repository, result.npmPackage);
-            }).bind(this)).then((function (result) {
-                _logUtil2.default.debug('The package was successfully added');
-            }).bind(this)).catch((function (err) {
+            }).bind(this)).then(function (result) {
+                _logUtil2.default.debug(result.name + ' was successfully added');
+            }).catch(function (err) {
                 _logUtil2.default.error(err);
-            }).bind(this));
+            });
         }
     }, {
         key: 'removePackage',
-        value: function removePackage() {
-            console.log('Remove a package');
+        value: function removePackage(id) {
+            this._ego.removePackage(Number(id)).then(function (result) {
+                _logUtil2.default.debug(result.name + ' was successfully removed');
+            }).catch(function (err) {
+                _logUtil2.default.error(err);
+            });
         }
     }, {
         key: 'refresh',

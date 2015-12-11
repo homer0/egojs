@@ -91,6 +91,30 @@ var EgoJS = (function () {
             }).bind(this));
         }
     }, {
+        key: 'removePackage',
+        value: function removePackage(id) {
+            var _this2 = this;
+
+            var property = arguments.length <= 1 || arguments[1] === undefined ? 'id' : arguments[1];
+
+            if (property === 'id') {
+                property = 'cid';
+            }
+
+            return new Promise((function (resolve, reject) {
+                var where = [];
+                where[property] = id;
+                var records = _this2._tables.packages.where(where).items;
+
+                if (records.length) {
+                    _this2._tables.packages.remove(records[0].cid);
+                    resolve(records[0]);
+                } else {
+                    reject(new Error('That package doesn\'t exist'));
+                }
+            }).bind(this));
+        }
+    }, {
         key: 'settings',
         set: function set(value) {
             var dbSettings = this._getDBSettings();

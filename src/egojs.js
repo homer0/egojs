@@ -66,6 +66,26 @@ export default class EgoJS {
         }).bind(this));
     }
 
+    removePackage(id, property = 'id') {
+        if (property === 'id') {
+            property = 'cid';
+        }
+
+        return new Promise(((resolve, reject) => {
+            const where = [];
+            where[property] = id;
+            const records = this._tables.packages.where(where).items;
+
+            if (records.length) {
+                this._tables.packages.remove(records[0].cid);
+                resolve(records[0]);
+            } else {
+                reject(new Error('That package doesn\'t exist'));
+            }
+
+        }).bind(this));
+    }
+
     set settings(value) {
         const dbSettings = this._getDBSettings();
         const settingsCid = dbSettings ? dbSettings.cid : -1;
