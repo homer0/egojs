@@ -10,6 +10,7 @@ export default class EgoJS {
         this._tables = {
             settings: this._db.collection('settings'),
             packages: this._db.collection('packages'),
+            cache: this._db.collection('cache'),
         };
 
         this._settings = this._getDBSettings();
@@ -34,6 +35,135 @@ export default class EgoJS {
         return this._tables.packages.where(where).items.length;
     }
 
+    _getCachedInfo(pckg, infoKey, limit = 300) {
+        const record = this._tables.cache.where({
+            packageId: pckg.cid,
+            infoKey: infoKey,
+        }).items[0];
+
+        let result = null;
+        if (record) {
+            limit = limit * 1000;
+            const now = Date.now();
+            const recordTime = Number(record.time);
+            if ((now - recordTime) < limit) {
+                result = record.value;
+            } else {
+                this._tables.cache.remove(record.cid);
+            }
+        }
+
+        return result;
+    }
+
+    _setCachedInfo(pckg, infoKey, value) {
+        const record = this._tables.cache.where({
+            packageId: pckg.cid,
+            infoKey: infoKey,
+        }).items[0];
+
+        const newRecord = {
+            packageId: pckg.cid,
+            infoKey: infoKey,
+            value: value,
+            time: Date.now(),
+        };
+
+        if (record) {
+            this._tables.cache.update(record.cid, newRecord);
+        } else {
+            this._tables.cache.insert(newRecord);
+        }
+    }
+
+    _getInformation(pckg, property, cacheKey, request, format, errorProperty = 'error') {
+        let result = null;
+
+        if (pckg[property]) {
+            const cached = this._getCachedInfo(pckg, cacheKey);
+
+            if (cached) {
+                result = EgoJSUtils.resolvedPromise(cached);
+            } else {
+                result = EgoJSUtils.request(request).then(((response) => {
+                    const parsed = JSON.parse(response);
+                    let chainResult = null;
+                    if (!parsed || parsed[errorProperty]) {
+                        chainResult = EgoJSUtils.rejectedPromise(parsed[errorProperty]);
+                    } else {
+                        // jscs:disable
+                        chainResult = format(parsed);
+                        // jscs:enable
+                        this._setCachedInfo(pckg, cacheKey, JSON.stringify(chainResult));
+                    }
+
+                    return chainResult;
+                }).bind(this));
+
+            }
+        } else {
+            result = EgoJSUtils.resolvedPromise({});
+        }
+
+        return result;
+    }
+
+    _getPackageRepositoryInfo(pckg) {
+        return this._getInformation(pckg, 'repository', 'github', {
+            uri: 'https://api.github.com/repos/' + pckg.repository,
+            headers: {
+                Authorization: 'token ' + this.settings.ghToken,
+                Accept: 'application/json',
+                'User-Agent': 'EgoJS',
+            },
+            method: 'GET',
+        }, (parsed) => {
+            return {
+                // jscs:disable
+                forks: parsed.forks_count,
+                stars: parsed.stargazers_count,
+                watchers: parsed.watchers_count,
+                url: parsed.html_url,
+                // jscs:enable
+            };
+        }, 'message');
+    }
+
+    _getPackageNPMInfo(pckg) {
+        return this._getInformation(pckg, 'npmPackage', 'npm', {
+            uri: 'https://api.npmjs.org/downloads/point/last-month/' + pckg.npmPackage,
+            headers: {
+                Accept: 'application/json',
+                'User-Agent': 'EgoJS',
+            },
+            method: 'GET',
+        }, (parsed) => {
+            return {
+                // jscs:disable
+                downloads: parsed.downloads,
+                url: 'https://www.npmjs.com/package/' + parsed.package,
+                // jscs:enable
+            };
+        });
+    }
+
+    _getPackageStats(pckg) {
+        const result = {
+            name: pckg.name,
+        };
+
+        return this._getPackageRepositoryInfo(pckg)
+        .then(((response) => {
+            result.repository = response;
+            return this._getPackageNPMInfo(pckg);
+        }).bind(this))
+
+        .then(((response) => {
+            result.npm = response;
+            return result;
+        }).bind(this));
+    }
+
     addPackage(name, repository, npmPackage) {
         return new Promise(((resolve, reject) => {
             let error = null;
@@ -45,6 +175,8 @@ export default class EgoJS {
                 error = 'You already have a package with that name';
             } else if (repository && this._packageExists('repository', repository)) {
                 error = 'You already have a package with that repository URL';
+            } else if (repository && repository.split('/').length !== 2) {
+                error = 'Please enter a valid repository URL';
             } else if (npmPackage && this._packageExists('npmPackage', npmPackage)) {
                 error = 'You already have a package with that NPM name';
             } else {
@@ -77,13 +209,34 @@ export default class EgoJS {
             const records = this._tables.packages.where(where).items;
 
             if (records.length) {
-                this._tables.packages.remove(records[0].cid);
+                const rid = records[0].cid;
+                this._tables.packages.remove(rid);
+                this.deleteCache(rid);
                 resolve(records[0]);
             } else {
                 reject(new Error('That package doesn\'t exist'));
             }
 
         }).bind(this));
+    }
+
+    getStats() {
+        const result = {};
+        const all = [];
+        this._tables.packages.items.forEach((it) => all.push(this._getPackageStats(it)));
+        return Promise.all(all).then(((response) => {
+            return response;
+        }).bind(this));
+    }
+
+    deleteCache(id = null) {
+        const records = id ? this._tables.cache.where({
+            packageId: id,
+        }).items : this._tables.cache.items;
+
+        for (let i = 0; i < records.length; i++) {
+            this._tables.cache.remove(records[i].cid);
+        }
     }
 
     set settings(value) {

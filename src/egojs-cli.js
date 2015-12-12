@@ -93,14 +93,6 @@ export default class EgoJSCli {
         return this._ego.settings ? EgoJSUtils.resolvedPromise() : this._getSettingsPrompt();
     }
 
-    listPackages() {
-        this._detectSettings().then(() => console.log('List the stats'));
-    }
-
-    configure() {
-        this._getSettingsPrompt(this._ego.settings || {});
-    }
-
     _getPackagePrompt(defaults = {}) {
         return this._promisePrompt([
             {
@@ -124,6 +116,24 @@ export default class EgoJSCli {
         ]);
     }
 
+    listPackages() {
+        this._detectSettings().then(() => this._ego.getStats())
+        .then(((data) => {
+            console.log('GOT ', data);
+        }).bind(this))
+
+        .catch((err) => {
+            logUtil.error(err);
+            if (err.stack) {
+                logUtil.error(err.stack);
+            }
+        });
+    }
+
+    configure() {
+        this._getSettingsPrompt(this._ego.settings || {});
+    }
+
     addPackage() {
         this._getPackagePrompt().then(((result) => {
             return this._ego.addPackage(result.name, result.repository, result.npmPackage);
@@ -143,7 +153,8 @@ export default class EgoJSCli {
     }
 
     refresh() {
-        console.log('Refresh the cache');
+        this._ego.deleteCache();
+        this.listPackages();
     }
 
 }

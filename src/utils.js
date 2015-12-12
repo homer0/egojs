@@ -1,3 +1,5 @@
+
+import request from 'request';
 /**
  * A list of utlity methods for the DevKit library.
  * @abstract
@@ -112,5 +114,17 @@ export default class EgoJSUtils {
         }, this);
 
         return result;
+    }
+
+    static request(data) {
+        return new Promise((resolve, reject) => {
+            request(data, (err, httpResponse, body) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(body);
+                }
+            });
+        });
     }
 }
