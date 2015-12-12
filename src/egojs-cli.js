@@ -7,6 +7,7 @@ import fs from 'fs';
 import path from 'path';
 import EgoJS from './egojs';
 import EgoJSUtils from './utils';
+import Table from 'cli-table';
 
 export default class EgoJSCli {
 
@@ -119,13 +120,49 @@ export default class EgoJSCli {
     }
 
     _logError(err) {
-        logUtil.error(err);
+        logUtil.error(err.stack ? err.stack : err);
+    }
+
+    _tableCellNumericValue(value) {
+        const result = typeof value === 'undefined' ? '-' : String(value);
+        return result === '0' ? colors.red(result) : result;
     }
 
     listPackages() {
         this._detectSettings().then(() => this._ego.getStats())
         .then(((data) => {
-            console.log('GOT ', data);
+
+            const headers = [
+                'ID',
+                'Name',
+                'Stars',
+                'Watchers',
+                'NPM Downloads',
+                'Forks',
+                'URLs',
+            ];
+
+            const t = new Table({
+                head: headers.map((header) => colors.green(header)),
+            });
+
+            for (let i = 0; i < data.length; i++) {
+                const row = data[i];
+                let urls = row.repository.url || '';
+                urls += (urls ? '\n' : '') + (row.npm.url || '');
+                t.push([
+                    Number(row.id),
+                    row.name,
+                    this._tableCellNumericValue(row.repository.stars),
+                    this._tableCellNumericValue(row.repository.watchers),
+                    this._tableCellNumericValue(row.npm.downloads),
+                    this._tableCellNumericValue(row.repository.forks),
+                    urls,
+                ]);
+            }
+
+            console.log(t.toString());
+
         }).bind(this))
 
         .catch((err) => this._logError(err));

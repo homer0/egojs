@@ -30,7 +30,7 @@ export default class EgoJS {
     }
 
     _packageExists(id, property, value) {
-        const where = '@cid != ' + id + ' && @' + property + ' == ' + value;
+        const where = '@cid != ' + id + ' && @' + property + ' == \'' + value + '\'';
         return this._tables.packages.where(where).items.length;
     }
 
@@ -46,7 +46,7 @@ export default class EgoJS {
             const now = Date.now();
             const recordTime = Number(record.time);
             if ((now - recordTime) < limit) {
-                result = record.value;
+                result = JSON.parse(record.value);
             } else {
                 this._tables.cache.remove(record.cid);
             }
@@ -148,6 +148,7 @@ export default class EgoJS {
 
     _getPackageStats(pckg) {
         const result = {
+            id: pckg.cid,
             name: pckg.name,
         };
 
@@ -257,7 +258,7 @@ export default class EgoJS {
 
     setGitHubToken(token) {
         this.settings = {
-            ghToken: token
+            ghToken: token,
         };
     }
 
