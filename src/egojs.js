@@ -255,9 +255,18 @@ export default class EgoJS {
         }
     }
 
+    setGitHubToken(token) {
+        this.settings = {
+            ghToken: token
+        };
+    }
+
     set settings(value) {
         const dbSettings = this._getDBSettings();
         const settingsCid = dbSettings ? dbSettings.cid : -1;
+        if (this._settings) {
+            value = EgoJSUtils.mergeObjects(this._settings, value);
+        }
 
         this._settings = value;
         const record = EgoJSUtils.mergeObjects({

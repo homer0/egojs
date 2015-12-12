@@ -86,9 +86,7 @@ export default class EgoJSCli {
                 default: defaults.ghToken || '',
             },
         ]).then(((result) => {
-            this._ego.settings = {
-                ghToken: result.ghToken,
-            };
+            this._ego.setGitHubToken(result.ghToken);
             logUtil.debug('The settings were sucessfully saved');
         }).bind(this));
     }
