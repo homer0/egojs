@@ -32,6 +32,10 @@ export default class EgoJSCli {
             .description('Add a package')
             .action(this.addPackage.bind(this));
         commander
+            .command('edit <id>')
+            .description('Edit a package')
+            .action(this.editPackage.bind(this));
+        commander
             .command('remove <id>')
             .description('Remove a package')
             .action(this.removePackage.bind(this));
@@ -116,18 +120,17 @@ export default class EgoJSCli {
         ]);
     }
 
+    _logError(err) {
+        logUtil.error(err);
+    }
+
     listPackages() {
         this._detectSettings().then(() => this._ego.getStats())
         .then(((data) => {
             console.log('GOT ', data);
         }).bind(this))
 
-        .catch((err) => {
-            logUtil.error(err);
-            if (err.stack) {
-                logUtil.error(err.stack);
-            }
-        });
+        .catch((err) => this._logError(err));
     }
 
     configure() {
@@ -141,7 +144,24 @@ export default class EgoJSCli {
 
         .bind(this))
         .then((result) => logUtil.debug(result.name + ' was successfully added'))
-        .catch((err) => logUtil.error(err));
+        .catch((err) => this._logError(err));
+    }
+
+    editPackage(id) {
+        let pckg = null;
+        id = Number(id);
+        this._ego.getPackage(id).then(((response) => {
+            pckg = response;
+            return this._getPackagePrompt(pckg);
+        }).bind(this))
+
+        .then(((result) => {
+            return this._ego.editPackage(id, result.name, result.repository, result.npmPackage);
+        })
+
+        .bind(this))
+        .then((result) => logUtil.debug(result.name + ' was successfully edited'))
+        .catch((err) => this._logError(err));
     }
 
     removePackage(id) {
@@ -149,7 +169,7 @@ export default class EgoJSCli {
             logUtil.debug(result.name + ' was successfully removed');
         })
 
-        .catch((err) => logUtil.error(err));
+        .catch((err) => this._logError(err));
     }
 
     refresh() {

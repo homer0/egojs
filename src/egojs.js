@@ -29,9 +29,8 @@ export default class EgoJS {
         return result;
     }
 
-    _packageExists(property, value) {
-        const where = {};
-        where[property] = value;
+    _packageExists(id, property, value) {
+        const where = '@cid != ' + id + ' && @' + property + ' == ' + value;
         return this._tables.packages.where(where).items.length;
     }
 
@@ -164,29 +163,35 @@ export default class EgoJS {
         }).bind(this));
     }
 
-    addPackage(name, repository, npmPackage) {
+    _setPackage(id, name, repository, npmPackage) {
         return new Promise(((resolve, reject) => {
             let error = null;
             let record = null;
 
             if (!repository && !npmPackage) {
                 error = 'You need to enter at least the repository or the NPM package';
-            } else if (this._packageExists('name', name)) {
+            } else if (this._packageExists(id, 'name', name)) {
                 error = 'You already have a package with that name';
-            } else if (repository && this._packageExists('repository', repository)) {
+            } else if (repository && this._packageExists(id, 'repository', repository)) {
                 error = 'You already have a package with that repository URL';
             } else if (repository && repository.split('/').length !== 2) {
                 error = 'Please enter a valid repository URL';
-            } else if (npmPackage && this._packageExists('npmPackage', npmPackage)) {
+            } else if (npmPackage && this._packageExists(id, 'npmPackage', npmPackage)) {
                 error = 'You already have a package with that NPM name';
             } else {
-                const newId = this._tables.packages.insert({
+                const use = {
                     name,
                     repository,
                     npmPackage,
-                });
+                };
 
-                record = this._tables.packages.get(newId);
+                if (id > -1) {
+                    this._tables.packages.update(id, use);
+                    record = this._tables.packages.get(id);
+                } else {
+                    const newId = this._tables.packages.insert(use);
+                    record = this._tables.packages.get(newId);
+                }
             }
 
             if (record) {
@@ -198,7 +203,15 @@ export default class EgoJS {
         }).bind(this));
     }
 
-    removePackage(id, property = 'id') {
+    addPackage(name, repository, npmPackage) {
+        return this._setPackage(-1, name, repository, npmPackage);
+    }
+
+    editPackage(id, name, repository, npmPackage) {
+        return this._setPackage(id, name, repository, npmPackage);
+    }
+
+    getPackage(id, property = 'id') {
         if (property === 'id') {
             property = 'cid';
         }
@@ -206,17 +219,20 @@ export default class EgoJS {
         return new Promise(((resolve, reject) => {
             const where = [];
             where[property] = id;
-            const records = this._tables.packages.where(where).items;
-
-            if (records.length) {
-                const rid = records[0].cid;
-                this._tables.packages.remove(rid);
-                this.deleteCache(rid);
-                resolve(records[0]);
+            const pckg = this._tables.packages.where(where).items[0];
+            if (pckg) {
+                resolve(pckg);
             } else {
                 reject(new Error('That package doesn\'t exist'));
             }
+        }).bind(this));
+    }
 
+    removePackage(id, property = 'id') {
+        return this.getPackage(id, property).then(((pckg) => {
+            this._tables.packages.remove(pckg.cid);
+            this.deleteCache(pckg.cid);
+            return pckg;
         }).bind(this));
     }
 
