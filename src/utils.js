@@ -82,9 +82,9 @@ export default class EgoJSUtils {
      * //         g: {
      * //             h: ['x', 'y', 'z'],
      * //             l: 'm',
-     * //         }
+     * //         },
      * //     },
-     * //     j: 'k',
+     * //     j: 'key',
      * // }
      * ._mergeObjects(a, b);
      *
@@ -101,9 +101,9 @@ export default class EgoJSUtils {
                     const current = obj[objKey];
                     const target = result[objKey];
                     if (typeof target !== 'undefined' &&
-                        current.constructor && current.constructor === Object &&
-                        target.constructor && target.constructor === Object) {
-                        result[objKey] = this._mergeObjects(target, current);
+                        current.constructor === Object &&
+                        target.constructor === Object) {
+                        result[objKey] = this.mergeObjects(target, current);
                     } else {
                         result[objKey] = current;
                     }

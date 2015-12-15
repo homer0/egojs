@@ -90,9 +90,7 @@ export default class EgoJS {
                     if (!parsed || parsed[errorProperty]) {
                         chainResult = EgoJSUtils.rejectedPromise(parsed[errorProperty]);
                     } else {
-                        // jscs:disable
                         chainResult = format(parsed);
-                        // jscs:enable
                         this._setCachedInfo(pckg, cacheKey, JSON.stringify(chainResult));
                     }
 
@@ -173,10 +171,10 @@ export default class EgoJS {
                 error = 'You need to enter at least the repository or the NPM package';
             } else if (this._packageExists(id, 'name', name)) {
                 error = 'You already have a package with that name';
-            } else if (repository && this._packageExists(id, 'repository', repository)) {
-                error = 'You already have a package with that repository URL';
             } else if (repository && repository.split('/').length !== 2) {
                 error = 'Please enter a valid repository URL';
+            } else if (repository && this._packageExists(id, 'repository', repository)) {
+                error = 'You already have a package with that repository URL';
             } else if (npmPackage && this._packageExists(id, 'npmPackage', npmPackage)) {
                 error = 'You already have a package with that NPM name';
             } else {
@@ -250,7 +248,6 @@ export default class EgoJS {
         const records = id ? this._tables.cache.where({
             packageId: id,
         }).items : this._tables.cache.items;
-
         for (let i = 0; i < records.length; i++) {
             this._tables.cache.remove(records[i].cid);
         }
@@ -276,6 +273,8 @@ export default class EgoJS {
 
         if (settingsCid > -1) {
             this._tables.settings.update(settingsCid, record);
+            delete this._settings.cid;
+            delete this._settings.settingId;
         } else {
             this._tables.settings.insert(record);
             this._settings = this._getDBSettings();

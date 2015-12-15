@@ -89,7 +89,9 @@ export default class EgoJSCli {
         ]).then(((result) => {
             this._ego.setGitHubToken(result.ghToken);
             logUtil.debug('The settings were sucessfully saved');
-        }).bind(this));
+        }).bind(this))
+
+        .catch((err) => this._logError(err));
     }
 
     _detectSettings() {
@@ -129,9 +131,8 @@ export default class EgoJSCli {
     }
 
     listPackages() {
-        this._detectSettings().then(() => this._ego.getStats())
+        return this._detectSettings().then(() => this._ego.getStats())
         .then(((data) => {
-
             const headers = [
                 'ID',
                 'Name',
@@ -169,11 +170,11 @@ export default class EgoJSCli {
     }
 
     configure() {
-        this._getSettingsPrompt(this._ego.settings || {});
+        return this._getSettingsPrompt(this._ego.settings || {});
     }
 
     addPackage() {
-        this._getPackagePrompt().then(((result) => {
+        return this._getPackagePrompt().then(((result) => {
             return this._ego.addPackage(result.name, result.repository, result.npmPackage);
         })
 
@@ -185,7 +186,7 @@ export default class EgoJSCli {
     editPackage(id) {
         let pckg = null;
         id = Number(id);
-        this._ego.getPackage(id).then(((response) => {
+        return this._ego.getPackage(id).then(((response) => {
             pckg = response;
             return this._getPackagePrompt(pckg);
         }).bind(this))
@@ -200,7 +201,7 @@ export default class EgoJSCli {
     }
 
     removePackage(id) {
-        this._ego.removePackage(Number(id)).then((result) => {
+        return this._ego.removePackage(Number(id)).then((result) => {
             logUtil.debug(result.name + ' was successfully removed');
         })
 
@@ -209,7 +210,7 @@ export default class EgoJSCli {
 
     refresh() {
         this._ego.deleteCache();
-        this.listPackages();
+        return this.listPackages();
     }
 
 }

@@ -36,11 +36,27 @@
     "start": "npm run build; node dist/index.js",
     "build": "babel --presets es2015 -d dist/ src/",
     "prepublish": "npm run build",
-    "test": "jest ./__tests__/index-test.js",
+    "test": "jest",
     "coverage": "npm test; open ./coverage/lcov-report/index.html",
     "lint": "eslint ./src/ ./__tests__/; jscs ./src/ ./__tests__/",
     "docs": "esdoc -c esdoc.json; open docs/index.html",
     "deploy-docs": ""
+  },
+  "safe": {
+  },
+  "jest": {
+    "collectCoverage": true,
+    "collectCoverageOnlyFrom": {
+      "src/egojs-cli.js": true,
+      "src/egojs.js": true,
+      "src/utils.js": true
+    },
+    "scriptPreprocessor": "<rootDir>/node_modules/babel-jest",
+    "testFileExtensions": ["js"],
+    "moduleFileExtensions": ["js"],
+    "unmockedModulePathPatterns": [
+      "<rootDir>/node_modules/"
+    ]
   },
   "bin": {
     "egojs": "./dist/index.js"
