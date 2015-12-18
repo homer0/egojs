@@ -1,31 +1,70 @@
-
+/**
+ * Basic setup
+ * ================================
+ *
+ * Disable the auto mock for the class that's about to be tested and the utility class (the
+ * utility class because otherwise I would have to mock some crazy Promises :P).
+ */
 jest.dontMock('../src/egojs-cli.js');
 jest.dontMock('../src/utils.js');
-
+/**
+ * Require the custom mock for the EgoJS class.
+ */
 const mockEgoJS = require('egojs');
 jest.setMock('../src/egojs', mockEgoJS.module);
-const mockLogger = require('log-util');
+/**
+ * Generate and set a mock function for the log utility.
+ */
+const mockLogger = jest.genMockFromModule('log-util');
 jest.setMock('log-util', mockLogger);
-const mockPrompt = require('prompt');
+/**
+ * Generate and set a mock for the terminal prompt utility.
+ */
+const mockPrompt = jest.genMockFromModule('prompt');
 jest.setMock('prompt', mockPrompt);
+/**
+ * Require the custom mock for the commander module.
+ */
 const mockCommander = require('commander');
 jest.setMock('commander', mockCommander);
+/**
+ * Require the custom mock for the cli-table module.
+ */
 const mockTable = require('cli-table');
 jest.setMock('cli-table', mockTable.module);
-
+/**
+ * For some reason, the regular require is not working for node native modules, and that's why I
+ * require them directly from the __mocks__ folder.
+ *
+ * Require fs in order to read the version from the package.json
+ */
 jest.dontMock('../__mocks__/fs.js');
 const mockFS = require('../__mocks__/fs');
 jest.setMock('fs', mockFS);
-
+/**
+ * Require path in order to resolve the path to the package.json
+ */
 jest.dontMock('../__mocks__/path.js');
 const mockPath = require('../__mocks__/path');
 jest.setMock('path', mockPath);
-
+/**
+ * Save a reference to the original console so it can be restored after adding a spy on it.
+ */
 const originalConsoleLog = console.log;
+/**
+ * Require the module to test.
+ */
 const EgoJSCli = require('../src/egojs-cli.js').default;
-
+/**
+ * Dummy data
+ * ================================
+ *
+ * The module version the class will read from the "package.json".
+ */
 const dummyVersion = '25.09.2015';
-
+/**
+ * A list of "stats" saved on the "database".
+ */
 const dummyStats = [
     {
         name: 'Package 1',
@@ -59,19 +98,27 @@ const dummyStats = [
         },
     },
 ];
-
+/**
+ * The default settings "saved in the module".
+ */
 const dummySettings = {
     ghToken: 'Ros/ario',
 };
-
+/**
+ * A package to set/get.
+ */
 const dummyPckg = {
     name: 'Ros/ario',
     repository: 'ros/ario',
     npmPackage: 'rosario',
 };
-
+/**
+ * A dummy error to use in the tests.
+ */
 const dummyError = new Error('Random Error');
-
+/**
+ * The suite.
+ */
 describe('EgoJS: CLI', () => {
 
     beforeEach(() => {
@@ -92,7 +139,9 @@ describe('EgoJS: CLI', () => {
         mockPrompt.get.mockClear();
 
     });
-
+    /**
+     * @test {EgoJSCli#constructor}
+     */
     it('should be a class with instance methods', () => {
         expect(() => EgoJSCli()).toThrow('Cannot call a class as a function');
         const instance = new EgoJSCli();
@@ -120,7 +169,9 @@ describe('EgoJS: CLI', () => {
 
         expect(mockEgoJS.mock.mocks.constructor.mock.calls.length).toEqual(1);
     });
-
+    /**
+     * @test {EgoJSCli#constructor}
+     */
     pit('should render a table with the packages', () => {
         const instance = new EgoJSCli();
         mockEgoJS.mock.settings = dummySettings;
@@ -133,14 +184,18 @@ describe('EgoJS: CLI', () => {
             expect(mockTable.mock.mocks.push.mock.calls.length).toEqual(3);
         });
     });
-
+    /**
+     * @test {EgoJSCli#constructor}
+     */
     it('should render the table if there isn\'t a command to execute', () => {
         mockCommander.args = [];
         const instance = new EgoJSCli();
         expect(mockLogger.verbose.mock.calls.length).toEqual(1);
         expect(mockLogger.verbose.mock.calls[0][0]).toMatch(/tokens\/new/);
     });
-
+    /**
+     * @test {EgoJSCli#listPackages}
+     */
     pit('should try to render a table but fail with an error', () => {
         const instance = new EgoJSCli();
         mockEgoJS.mock.settings = dummySettings;
@@ -149,7 +204,9 @@ describe('EgoJS: CLI', () => {
             expect(mockLogger.error.mock.calls.length).toEqual(1);
         });
     });
-
+    /**
+     * @test {EgoJSCli#configure}
+     */
     pit('should prompt the configuration', () => {
         const instance = new EgoJSCli();
         mockEgoJS.mock.settings = {};
@@ -161,7 +218,9 @@ describe('EgoJS: CLI', () => {
         mockPrompt.get.mock.calls[0][1](null, dummySettings);
         return result;
     });
-
+    /**
+     * @test {EgoJSCli#configure}
+     */
     pit('should prompt the configuration and fail', () => {
         const instance = new EgoJSCli();
         mockEgoJS.mock.settings = null;
@@ -173,7 +232,9 @@ describe('EgoJS: CLI', () => {
         mockPrompt.get.mock.calls[0][1](dummyError, null);
         return result;
     });
-
+    /**
+     * @test {EgoJSCli#addPackage}
+     */
     pit('should successfully add a package', () => {
         const instance = new EgoJSCli();
         mockEgoJS.mock.settings = {};
@@ -187,7 +248,9 @@ describe('EgoJS: CLI', () => {
         mockPrompt.get.mock.calls[0][1](null, dummyPckg);
         return result;
     });
-
+    /**
+     * @test {EgoJSCli#addPackage}
+     */
     pit('should try to add a package and fail', () => {
         const instance = new EgoJSCli();
         mockEgoJS.mock.settings = {};
@@ -199,7 +262,9 @@ describe('EgoJS: CLI', () => {
         mockPrompt.get.mock.calls[0][1](dummyError.message, null);
         return result;
     });
-
+    /**
+     * @test {EgoJSCli#editPackage}
+     */
     pit('should successfully edit a package', () => {
         const instance = new EgoJSCli();
         mockEgoJS.mock.settings = {};
@@ -220,7 +285,9 @@ describe('EgoJS: CLI', () => {
 
         return result;
     });
-
+    /**
+     * @test {EgoJSCli#editPackage}
+     */
     pit('should try to edit a package and fail', () => {
         const instance = new EgoJSCli();
         mockEgoJS.mock.settings = {};
@@ -236,7 +303,9 @@ describe('EgoJS: CLI', () => {
 
         return result;
     });
-
+    /**
+     * @test {EgoJSCli#removePackage}
+     */
     pit('should successfully remove a package', () => {
         const instance = new EgoJSCli();
         mockEgoJS.mock.settings = {};
@@ -249,7 +318,9 @@ describe('EgoJS: CLI', () => {
             expect(mockLogger.debug.mock.calls.length).toEqual(1);
         });
     });
-
+    /**
+     * @test {EgoJSCli#removePackage}
+     */
     pit('should try to remove a package and fail', () => {
         const instance = new EgoJSCli();
         mockEgoJS.mock.settings = {};
@@ -258,7 +329,9 @@ describe('EgoJS: CLI', () => {
             expect(mockLogger.error.mock.calls.length).toEqual(1);
         });
     });
-
+    /**
+     * @test {EgoJSCli#refresh}
+     */
     pit('should clear the cache the draw the list again using the refresh method', () => {
         const instance = new EgoJSCli();
         mockEgoJS.mock.settings = dummySettings;
