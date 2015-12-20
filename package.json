@@ -61,5 +61,5 @@
   "bin": {
     "egojs": "./dist/index.js"
   },
-  "main": "dist/index.js"
+  "main": "dist/egojs.js"
 }
