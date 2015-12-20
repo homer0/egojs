@@ -13,9 +13,13 @@ jest.dontMock('../src/utils.js');
 const mockEgoJS = require('egojs');
 jest.setMock('../src/egojs', mockEgoJS.module);
 /**
- * Generate and set a mock function for the log utility.
+ * Make a really simple mock for the log-util module
  */
-const mockLogger = jest.genMockFromModule('log-util');
+const mockLogger = {
+    error: jest.genMockFunction(),
+    debug: jest.genMockFunction(),
+    verbose: jest.genMockFunction(),
+};
 jest.setMock('log-util', mockLogger);
 /**
  * Generate and set a mock for the terminal prompt utility.
@@ -211,7 +215,7 @@ describe('EgoJS: CLI', () => {
         const instance = new EgoJSCli();
         mockEgoJS.mock.settings = dummySettings;
         mockEgoJS.mock.stats = dummyStats;
-        // mockEgoJS.mock.statsAsPromise = true;
+        console.log = jasmine.createSpy('log');
 
         return instance.listPackages().then(() => {
 
@@ -241,6 +245,9 @@ describe('EgoJS: CLI', () => {
             process.stdout.clearLine = originalClearLine;
             process.stdout.cursorTo = originalCursorTo;
             process.stdout.write = originalWrite;
+
+            expect(console.log).toHaveBeenCalled();
+            console.log = originalConsoleLog;
         });
     });
     /**
