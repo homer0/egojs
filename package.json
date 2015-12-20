@@ -1,6 +1,6 @@
 {
   "name": "egojs",
-  "description": "WIP",
+  "description": "A small utility to check your projects stats on GitHub and npm",
   "version": "1.0.0",
   "repository": "homer0/egojs",
   "author": "Leonardo Apiwan (@homer0) <me@homer0.com>",
@@ -42,8 +42,6 @@
     "lint": "eslint ./src/ ./__tests__/; jscs ./src/ ./__tests__/",
     "docs": "esdoc -c esdoc.json; open docs/index.html",
     "deploy-docs": "esdoc-uploader"
-  },
-  "safe": {
   },
   "jest": {
     "collectCoverage": true,
