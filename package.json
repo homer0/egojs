@@ -30,7 +30,8 @@
     "jest-cli": "0.8.1",
     "babel-jest": "6.0.1",
     "esdoc": "0.4.3",
-    "esdoc-es7-plugin": "0.0.3"
+    "esdoc-es7-plugin": "0.0.3",
+    "esdoc-uploader": "1.0.1"
   },
   "scripts": {
     "start": "npm run build; node dist/index.js",
@@ -40,7 +41,7 @@
     "coverage": "npm test; open ./coverage/lcov-report/index.html",
     "lint": "eslint ./src/ ./__tests__/; jscs ./src/ ./__tests__/",
     "docs": "esdoc -c esdoc.json; open docs/index.html",
-    "deploy-docs": ""
+    "deploy-docs": "esdoc-uploader"
   },
   "safe": {
   },
