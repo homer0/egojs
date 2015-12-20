@@ -90,8 +90,6 @@ export default class EgoJSUtils {
      *
      * @param  {...Object} objects - The list of objects to merge.
      * @return {Object} A new object with the merged properties.
-     * @private
-     * @ignore
      */
     static mergeObjects(...objects) {
         const result = {};
@@ -115,7 +113,16 @@ export default class EgoJSUtils {
 
         return result;
     }
-
+    /**
+     * Wrap a Request call into a Promise.
+     * @example
+     * request({uri: 'https://homer0.com/rosario'})
+     * .then((response) => doSomething(response))
+     * .catch((err) => handleErrors(err));
+     *
+     * @param  {Object} data The request settings. The same you would use with request().
+     * @return {Promise<Object, Error>} It will be resolved or rejected depending on the response.
+     */
     static request(data) {
         return new Promise((resolve, reject) => {
             request(data, (err, httpResponse, body) => {

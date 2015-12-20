@@ -1,6 +1,10 @@
 #!/usr/bin/env node --harmony
 'use strict';
-
+/**
+ * Import the CLI interface.
+ */
 import EgoJSCli from './egojs-cli';
-
-const ego = new EgoJSCli();
+/**
+ * Create a new instance.
+ */
+new EgoJSCli();

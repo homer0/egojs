@@ -8,18 +8,41 @@ import path from 'path';
 import EgoJS from './egojs';
 import EgoJSUtils from './utils';
 import Table from 'cli-table';
-
+/**
+ * Creates a CLI interface to work with EgoJS.
+ * @version 1.0.0
+ */
 export default class EgoJSCli {
-
+    /**
+     * Create a new instance of the CLI interface and use commander to defined all the possible
+     * commands.
+     * @public
+     */
     constructor() {
-
+        /**
+         * The current package version.
+         * @type {string}
+         * @private
+         * @ignore
+         */
+        this._version = this._getPackageVersion();
+        /**
+         * The EgoJS instance the CLI will interface with.
+         * @type {EgoJS}
+         */
+        this._ego = new EgoJS();
+        /**
+         * Disable some default text from the prompt utility.
+         */
         prompt.message = '';
         prompt.delimiter = '';
-
-        this._version = this._getPackageVersion();
+        /**
+         * Set the package version into the commander.
+         */
         commander.version(this._version);
-        this._ego = new EgoJS();
-
+        /**
+         * Define the interface possible commands.
+         */
         commander
             .command('list')
             .description('List the stats')
@@ -50,19 +73,32 @@ export default class EgoJSCli {
         commander.options[0].description = 'print the EgoJS version';
 
         commander.parse(process.argv);
-
+        /**
+         * If there's no command to execute, show the list.
+         */
         if (!commander.args.length) {
             this.listPackages();
         }
 
     }
-
+    /**
+     * Read the package version from the `package.json` and return it.
+     * @return {String}
+     * @private
+     * @ignore
+     */
     _getPackageVersion() {
         const packagePath = path.resolve('./package.json');
         const packageContents = fs.readFileSync(packagePath, 'utf-8');
         return JSON.parse(packageContents).version;
     }
-
+    /**
+     * Wraps a prompt call inside a Promise.
+     * @param  {Array} schema A list of the "questions" for the prompt.
+     * @return {Promise<Object, Error>} The input data or an error if something went wrong.
+     * @private
+     * @ignore
+     */
     _promisePrompt(schema) {
         return new Promise((resolve, reject) => {
             prompt.get(schema, function(err, result) {
@@ -74,7 +110,13 @@ export default class EgoJSCli {
             });
         });
     }
-
+    /**
+     * Use the prompt to ask the user for new settings.
+     * @param  {Object} [defaults={}] Already existing settings (for when it goes on edit mode).
+     * @return {Promise<Object,Error>}
+     * @private
+     * @ignore
+     */
     _getSettingsPrompt(defaults = {}) {
         logUtil.verbose('You can create a token on ' +
             colors.green('https://github.com/settings/tokens/new'));
@@ -93,11 +135,25 @@ export default class EgoJSCli {
 
         .catch((err) => this._logError(err));
     }
-
+    /**
+     * This method runs inside every command in order to validate that there are settings saved
+     * inside the module. If the settings are saved, it will return an already fullfiled promise,
+     * otherwise, it will use the prompt to ask for them.
+     * @return {Promise<*, Error>}
+     * @private
+     * @ignore
+     */
     _detectSettings() {
         return this._ego.settings ? EgoJSUtils.resolvedPromise() : this._getSettingsPrompt();
     }
-
+    /**
+     * Use the prompt to add/edit a package.
+     * @param  {Object} [defaults={}] In case this is being used to edit a package, this will
+     *                                contain its properties.
+     * @return {Promise<Object,Error>}
+     * @private
+     * @ignore
+     */
     _getPackagePrompt(defaults = {}) {
         return this._promisePrompt([
             {
@@ -120,16 +176,33 @@ export default class EgoJSCli {
             },
         ]);
     }
-
+    /**
+     * Logs an error on the console with the appropriate styles for an error (red text).
+     * @param {Error} err The error to log. If the error has a stack it will log that, instead
+     *                    of just the message.
+     * @private
+     * @ignore
+     */
     _logError(err) {
         logUtil.error(err.stack ? err.stack : err);
     }
-
+    /**
+     * A utility methods that returns formated text for a cli-table cell. If the value is
+     * undefined, it will return '-', if the value is '0', it will color it red, otherwise,
+     * it will return it as it is.
+     * @param  {*} value The value to evaluate.
+     * @return {String} The value for the cell.
+     * @private
+     * @ignore
+     */
     _tableCellNumericValue(value) {
         const result = typeof value === 'undefined' ? '-' : String(value);
         return result === '0' ? colors.red(result) : result;
     }
-
+    /**
+     * List all the package stats on the terminal.
+     * @return {Promise<null,Error>}
+     */
     listPackages() {
         return this._detectSettings().then(() => this._ego.getStats())
         .then(((data) => {
@@ -168,11 +241,17 @@ export default class EgoJSCli {
 
         .catch((err) => this._logError(err));
     }
-
+    /**
+     * Show the settings prompt in order to enter the new settings.
+     * @return {Promise<null,Error>}
+     */
     configure() {
         return this._getSettingsPrompt(this._ego.settings || {});
     }
-
+    /**
+     * Use the prompt to add a new package.
+     * @return {Promise<null,Error>}
+     */
     addPackage() {
         return this._getPackagePrompt().then(((result) => {
             return this._ego.addPackage(result.name, result.repository, result.npmPackage);
@@ -182,7 +261,10 @@ export default class EgoJSCli {
         .then((result) => logUtil.debug(result.name + ' was successfully added'))
         .catch((err) => this._logError(err));
     }
-
+    /**
+     * Use the prompt to edit an existing package.
+     * @return {Promise<null,Error>}
+     */
     editPackage(id) {
         let pckg = null;
         id = Number(id);
@@ -199,7 +281,10 @@ export default class EgoJSCli {
         .then((result) => logUtil.debug(result.name + ' was successfully edited'))
         .catch((err) => this._logError(err));
     }
-
+    /**
+     * Use the prompt to remove an existing package.
+     * @return {Promise<null,Error>}
+     */
     removePackage(id) {
         return this._ego.removePackage(Number(id)).then((result) => {
             logUtil.debug(result.name + ' was successfully removed');
@@ -207,7 +292,10 @@ export default class EgoJSCli {
 
         .catch((err) => this._logError(err));
     }
-
+    /**
+     * Clear the cache and show the table again.
+     * @return {Promise<null,Error>}
+     */
     refresh() {
         this._ego.deleteCache();
         return this.listPackages();

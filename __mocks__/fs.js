@@ -2,7 +2,6 @@
 
 // __mocks__/fs.js
 
-// Get the automatic mock for `fs`
 const fsMock = jest.genMockFromModule('fs');
 
 let fileContent = null;
