@@ -201,7 +201,8 @@ export default class EgoJSCli {
     }
     /**
      * List all the package stats on the terminal.
-     * @return {Promise<null,Error>}
+     * @return {Promise<null,Error>} In case of success, the promise will be resolved with no
+     *                               arguments
      */
     listPackages() {
         return this._detectSettings().then(() => this._ego.getStats())
@@ -243,14 +244,16 @@ export default class EgoJSCli {
     }
     /**
      * Show the settings prompt in order to enter the new settings.
-     * @return {Promise<null,Error>}
+     * @return {Promise<null,Error>} In case of success, the promise will be resolved with no
+     *                               arguments
      */
     configure() {
         return this._getSettingsPrompt(this._ego.settings || {});
     }
     /**
      * Use the prompt to add a new package.
-     * @return {Promise<null,Error>}
+     * @return {Promise<null,Error>} In case of success, the promise will be resolved with no
+     *                               arguments
      */
     addPackage() {
         return this._getPackagePrompt().then(((result) => {
@@ -263,7 +266,9 @@ export default class EgoJSCli {
     }
     /**
      * Use the prompt to edit an existing package.
-     * @return {Promise<null,Error>}
+     * @param  {Number} id The package unique id.
+     * @return {Promise<null,Error>} In case of success, the promise will be resolved with no
+     *                               arguments
      */
     editPackage(id) {
         let pckg = null;
@@ -283,7 +288,9 @@ export default class EgoJSCli {
     }
     /**
      * Use the prompt to remove an existing package.
-     * @return {Promise<null,Error>}
+     * @param  {Number} id The package unique id.
+     * @return {Promise<null,Error>} In case of success, the promise will be resolved with no
+     *                               arguments
      */
     removePackage(id) {
         return this._ego.removePackage(Number(id)).then((result) => {
@@ -294,7 +301,8 @@ export default class EgoJSCli {
     }
     /**
      * Clear the cache and show the table again.
-     * @return {Promise<null,Error>}
+     * @return {Promise<null,Error>} In case of success, the promise will be resolved with no
+     *                               arguments
      */
     refresh() {
         this._ego.deleteCache();

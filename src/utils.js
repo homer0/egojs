@@ -1,7 +1,7 @@
 
 import request from 'request';
 /**
- * A list of utlity methods for the DevKit library.
+ * A set of utlity methods.
  * @abstract
  */
 export default class EgoJSUtils {
@@ -25,7 +25,7 @@ export default class EgoJSUtils {
     /**
      * Returns an already rejected promise.
      * @example
-     * OlapicUtils.rejectedPromise('error message').catch((e) => {
+     * EgoJSUtils.rejectedPromise('error message').catch((e) => {
      *     // It will log 'error message'
      *     console.log(e);
      * });
@@ -39,7 +39,7 @@ export default class EgoJSUtils {
     /**
      * Returns an already resolved promise.
      * @example
-     * OlapicUtils.rejectedPromise('hello world').then((message) => {
+     * EgoJSUtils.rejectedPromise('hello world').then((message) => {
      *     // It will log 'hello world'
      *     console.log(message);
      * });
@@ -114,7 +114,7 @@ export default class EgoJSUtils {
         return result;
     }
     /**
-     * Wrap a Request call into a Promise.
+     * Wraps a Request call into a Promise.
      * @example
      * request({uri: 'https://homer0.com/rosario'})
      * .then((response) => doSomething(response))
