@@ -2,13 +2,13 @@
   "name": "egojs",
   "description": "WIP",
   "version": "1.0.0",
+  "repository": "homer0/egojs",
   "author": "Leonardo Apiwan (@homer0) <me@homer0.com>",
   "license": "MIT",
   "keywords": [
     "es6",
-    "esdoc",
-    "node",
-    "babel",
+    "stats",
+    "github",
     "npm"
   ],
   "dependencies": {
