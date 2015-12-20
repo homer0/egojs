@@ -10,10 +10,6 @@ var _locallydb = require('locallydb');
 
 var _locallydb2 = _interopRequireDefault(_locallydb);
 
-var _path = require('path');
-
-var _path2 = _interopRequireDefault(_path);
-
 var _utils = require('./utils');
 
 var _utils2 = _interopRequireDefault(_utils);
@@ -43,7 +39,7 @@ var EgoJS = (function () {
          * @private
          * @ignore
          */
-        this._db = new /*istanbul ignore next*/_locallydb2.default( /*istanbul ignore next*/_path2.default.resolve('./data'));
+        this._db = new /*istanbul ignore next*/_locallydb2.default(__dirname + '/../data');
         /**
          * A dictionary with the local database tables.
          * @type {Object}

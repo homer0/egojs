@@ -46,12 +46,6 @@ jest.dontMock('../__mocks__/fs.js');
 const mockFS = require('../__mocks__/fs');
 jest.setMock('fs', mockFS);
 /**
- * Require path in order to resolve the path to the package.json
- */
-jest.dontMock('../__mocks__/path.js');
-const mockPath = require('../__mocks__/path');
-jest.setMock('path', mockPath);
-/**
  * Save a reference to the original console so it can be restored after adding a spy on it.
  */
 const originalConsoleLog = console.log;
@@ -169,7 +163,6 @@ describe('EgoJS: CLI', () => {
         expect(mockCommander.options[0].description).toEqual('print the EgoJS version');
 
         expect(mockFS.readFileSync.mock.calls.length).toEqual(1);
-        expect(mockPath.resolve.mock.calls.length).toEqual(1);
 
         expect(mockEgoJS.mock.mocks.constructor.mock.calls.length).toEqual(1);
     });

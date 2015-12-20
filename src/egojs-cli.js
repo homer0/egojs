@@ -4,7 +4,6 @@ import prompt from 'prompt';
 import logUtil from 'log-util';
 import colors from 'colors';
 import fs from 'fs';
-import path from 'path';
 import EgoJS from './egojs';
 import EgoJSUtils from './utils';
 import Table from 'cli-table';
@@ -124,8 +123,7 @@ export default class EgoJSCli {
      * @ignore
      */
     _getPackageVersion() {
-        const packagePath = path.resolve('./package.json');
-        const packageContents = fs.readFileSync(packagePath, 'utf-8');
+        const packageContents = fs.readFileSync(__dirname + '/../package.json', 'utf-8');
         return JSON.parse(packageContents).version;
     }
     /**
@@ -220,8 +218,8 @@ export default class EgoJSCli {
      * @ignore
      */
     _logError(err) {
-        logUtil.error(err.stack ? err.stack : err);
         this._stopIndicator();
+        logUtil.error(err.stack ? err.stack : err);
     }
     /**
      * Starts showing the progress indicator on the terminal.

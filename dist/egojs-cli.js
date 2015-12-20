@@ -26,10 +26,6 @@ var _fs = require('fs');
 
 var _fs2 = _interopRequireDefault(_fs);
 
-var _path = require('path');
-
-var _path2 = _interopRequireDefault(_path);
-
 var _egojs = require('./egojs');
 
 var _egojs2 = _interopRequireDefault(_egojs);
@@ -151,8 +147,7 @@ var EgoJSCli = (function () {
     _createClass(EgoJSCli, [{
         key: '_getPackageVersion',
         value: function _getPackageVersion() {
-            var packagePath = /*istanbul ignore next*/_path2.default.resolve('./package.json');
-            var packageContents = /*istanbul ignore next*/_fs2.default.readFileSync(packagePath, 'utf-8');
+            var packageContents = /*istanbul ignore next*/_fs2.default.readFileSync(__dirname + '/../package.json', 'utf-8');
             return JSON.parse(packageContents).version;
         }
         /**
@@ -263,8 +258,8 @@ var EgoJSCli = (function () {
     }, {
         key: '_logError',
         value: function _logError(err) {
-            /*istanbul ignore next*/_logUtil2.default.error(err.stack ? err.stack : err);
             this._stopIndicator();
+            /*istanbul ignore next*/_logUtil2.default.error(err.stack ? err.stack : err);
         }
         /**
          * Starts showing the progress indicator on the terminal.

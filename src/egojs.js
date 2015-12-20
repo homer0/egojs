@@ -1,6 +1,5 @@
 
 import LocallyDB from 'locallydb';
-import path from 'path';
 import EgoJSUtils from './utils';
 /**
  * The actual 'core' for EgoJS. This class saves the packages into the local db, manages the
@@ -18,7 +17,7 @@ export default class EgoJS {
          * @private
          * @ignore
          */
-        this._db = new LocallyDB(path.resolve('./data'));
+        this._db = new LocallyDB(__dirname + '/../data');
         /**
          * A dictionary with the local database tables.
          * @type {Object}

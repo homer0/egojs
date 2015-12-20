@@ -13,13 +13,6 @@ jest.dontMock('../src/utils.js');
 const mockDB = require('locallydb');
 jest.setMock('locallydb', mockDB.module);
 /**
- * For some reason, the regular require is not working for node native modules, and that's why I
- * require it directly from the __mocks__ folder.
- */
-jest.dontMock('../__mocks__/path.js');
-const mockPath = require('../__mocks__/path');
-jest.setMock('path', mockPath);
-/**
  * Small hack to avoid creating a new mock for the utility class: I save the original request
  * method in a variable, generate a mock function, swap them in the test and restore them after.
  * So not proud.
