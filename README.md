@@ -19,13 +19,13 @@ Yes, it's all about the community and we only care about the contribution, but c
 You can install it using [npm](https://www.npmjs.com/).
 
     npm install egojs -g
-    
+
 ## Usage
 
 ### Configuration
 
     egojs config
-    
+
 You can start the configuration with the `config` command or by running **anything** for the first time :P. For now, the configuration only asks you for one thing: A GitHub access token. We need it in order to request for your repository information on their API.
 
 You can generate a new GitHub access token [using this URL](https://github.com/settings/tokens/new).
@@ -45,19 +45,19 @@ Now, something to have in mind is that you can ignore the repository or the npm 
 ### Edit a package
 
     egojs edit <id>
-    
+
 You can easily edit a package properties by using the `edit` command. You can obtain the package unique id from the first column of the table (see the `list` command).
 
 ### Remove a package
 
     egojs remove <id>
-    
+
 Removing packages it's as easy as editing them, instad of `edit`, use the `remove` command with the unique id you obtained from the table and your package goes away!.
 
 ### Show me the numbers!
 
     egojs list
-    
+
 This is the command you were looking for... It will show the table with your project stats. This is also executed if you didn't specify any command.
 
 ## As a module
@@ -85,11 +85,11 @@ For more information, you can check the [EgoJS module documentation](https://doc
 
 ### npm tasks
 
-- `npm run build`: Build the module to be ES5 compatible (using [Babel](https://babel.io)).
-- `npm test`: Run the module's unit tests.
+- `npm run build`: Build the module to be ES5 compatible with [Babel](https://babel.io).
+- `npm test`: Run the module's unit tests with [Jest](https://facebook.github.io/jest/).
 - `npm run coverage`: Run the unit tests and open the coverage report on the browser.
-- `npm run lint`: Lint the plugin's code with JSCS and ESLint.
-- `npm run docs`: Generate the project documentation.
+- `npm run lint`: Lint the plugin's code with [JSCS](http://jscs.info/) and [ESLint](http://eslint.org).
+- `npm run docs`: Generate the project documentation using [ESDoc](https://esdoc.org/).
 
 ## License
 
