@@ -27,6 +27,42 @@ export default class EgoJSCli {
          */
         this._version = this._getPackageVersion();
         /**
+         * The text for the loading indicator.
+         * @type {String}
+         * @private
+         * @ignore
+         */
+        this._indicatorText = 'Loading, please diet';
+        /**
+         * The interval object that will be created with setInterval.
+         * @type {Object}
+         * @private
+         * @ignore
+         */
+        this._indicatorInterval = null;
+        /**
+         * A utility counter to know how many dos will be added to the indicator
+         * @type {Number}
+         * @private
+         * @ignore
+         */
+        this._indicatorCounter = -1;
+        /**
+         * After this many iterations, the dots will start to be removed instead of added. When the
+         * counter hits 0, it will start adding again, until it hits this limit.
+         * @type {Number}
+         * @private
+         * @ignore
+         */
+        this._indicatorLimit = 3;
+        /**
+         * A flag to know if the indicator it's currently adding dots or removing them.
+         * @type {Boolean}
+         * @private
+         * @ignore
+         */
+        this._indicatorIncrease = true;
+        /**
          * The EgoJS instance the CLI will interface with.
          * @type {EgoJS}
          */
@@ -185,6 +221,71 @@ export default class EgoJSCli {
      */
     _logError(err) {
         logUtil.error(err.stack ? err.stack : err);
+        this._stopIndicator();
+    }
+    /**
+     * Starts showing the progress indicator on the terminal.
+     * @private
+     * @ignore
+     */
+    _startIndicator() {
+        this._indicatorInterval = setInterval(this._runIndicator.bind(this), 500);
+    }
+    /**
+     * The actual method that shows the progress indicator on the terminal.
+     * @private
+     * @ignore
+     */
+    _runIndicator() {
+        let text = this._indicatorText;
+        if (this._indicatorIncrease) {
+            this._indicatorCounter++;
+            if (this._indicatorCounter === this._indicatorLimit) {
+                this._indicatorIncrease = false;
+            }
+        } else {
+            this._indicatorCounter--;
+            if (this._indicatorCounter === 0) {
+                this._indicatorIncrease = true;
+            }
+        }
+
+        for (let i = 0; i < this._indicatorCounter; i++) {
+            text += '.';
+        }
+
+        this._restartLine();
+        this._print(text);
+    }
+    /**
+     * Removes the progress indicator from the terminal.
+     * @private
+     * @ignore
+     */
+    _stopIndicator() {
+        if (this._indicatorInterval) {
+            clearInterval(this._indicatorInterval);
+            this._restartLine();
+        }
+    }
+    /**
+     * Removes everything on the current terminal line and sets the cursor to the initial
+     * position.
+     * @private
+     * @ignore
+     */
+    _restartLine() {
+        process.stdout.clearLine();
+        process.stdout.cursorTo(0);
+    }
+    /**
+     * Writes a message in the terminal.
+     * @param {String} message - The text to write.
+     * @private
+     * @ignore
+     */
+    _print(message) {
+        process.stdout.write(message);
     }
     /**
      * A utility methods that returns formated text for a cli-table cell. If the value is
@@ -205,7 +306,9 @@ export default class EgoJSCli {
      *                               arguments
      */
     listPackages() {
-        return this._detectSettings().then(() => this._ego.getStats())
+        return this._detectSettings()
+        .then(() => this._startIndicator())
+        .then(() => this._ego.getStats())
         .then(((data) => {
             const headers = [
                 'ID',
@@ -236,6 +339,7 @@ export default class EgoJSCli {
                 ]);
             }
 
+            this._stopIndicator();
             console.log(t.toString());
 
         }).bind(this))

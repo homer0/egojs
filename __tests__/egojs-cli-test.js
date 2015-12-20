@@ -205,6 +205,45 @@ describe('EgoJS: CLI', () => {
         });
     });
     /**
+     * @test {EgoJSCli#constructor}
+     */
+    pit('should write the loading indicator while the module is getting the stats', () => {
+        const instance = new EgoJSCli();
+        mockEgoJS.mock.settings = dummySettings;
+        mockEgoJS.mock.stats = dummyStats;
+        // mockEgoJS.mock.statsAsPromise = true;
+
+        return instance.listPackages().then(() => {
+
+            const originalClearLine = process.stdout.clearLine;
+            process.stdout.clearLine = jasmine.createSpy('clearLine');
+            const originalCursorTo = process.stdout.cursorTo;
+            process.stdout.cursorTo = jasmine.createSpy('cursorTo');
+            const originalWrite = process.stdout.write;
+            process.stdout.write = jasmine.createSpy('write');
+
+            const intervalCall = setInterval.mock.calls[0][0];
+            const intervalText = 'Loading, please diet';
+            const intervalDots = ['', '.', '..', '...', '..', '.', ''];
+            for (let i = 0; i < intervalDots.length; i++) {
+                intervalCall();
+                expect(process.stdout.clearLine).toHaveBeenCalled();
+                expect(process.stdout.cursorTo).toHaveBeenCalledWith(0);
+                expect(process.stdout.write).toHaveBeenCalledWith(intervalText + intervalDots[i]);
+            }
+
+            // mockEgoJS.mock.resolveStats();
+
+            expect(clearInterval.mock.calls.length).toEqual(1);
+            expect(process.stdout.clearLine).toHaveBeenCalled();
+            expect(process.stdout.cursorTo).toHaveBeenCalledWith(0);
+
+            process.stdout.clearLine = originalClearLine;
+            process.stdout.cursorTo = originalCursorTo;
+            process.stdout.write = originalWrite;
+        });
+    });
+    /**
      * @test {EgoJSCli#configure}
      */
     pit('should prompt the configuration', () => {
